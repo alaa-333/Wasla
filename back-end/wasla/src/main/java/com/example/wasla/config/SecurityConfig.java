@@ -1,6 +1,5 @@
 package com.example.wasla.config;
 
-
 import com.example.wasla.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,41 +20,36 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // تسمح لك باستخدام @PreAuthorize لتحديد الأدوار (Driver/Client)
+@EnableMethodSecurity 
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
-
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // تعطيل CSRF لأننا نستخدم JWT (Stateless)
-                .cors(Customizer.withDefaults()) // تفعيل الـ CORS للسماح لـ Flutter بالاتصال بالسيرفر
+                .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll() // السماح بالدخول لشاشات تسجيل الدخول دون Token
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // فتح التوثيق للجنة التحكيم
-                        .requestMatchers("/api/v1/driver/**").hasAuthority("DRIVER") // مسارات خاصة بالسائق فقط
-                        .requestMatchers("/api/v1/client/**").hasAuthority("CLIENT") // مسارات خاصة بالعميل فقط
-                        .anyRequest().authenticated() // أي طلب آخر يتطلب Token
-                )
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs")
+                        .permitAll()
+                        .requestMatchers("/api/driver/**").hasAuthority("DRIVER")
+                        .requestMatchers("/api/client/**").hasAuthority("CLIENT")
+                        .anyRequest().authenticated())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // إخبار Spring بعدم إنشاء Session
-                )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // وضع فلتر الـ JWT قبل فلتر الأمن الافتراضي
-
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    // إعدادات الـ CORS مهمة جداً لكي لا يرفض السيرفر طلبات تطبيق الـ Flutter
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*")); // في الإنتاج نحدد روابط معينة، في التخرج نفتحها للسهولة
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
