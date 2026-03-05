@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .httpStatus(ex.getStatusCode().value())
                 .path(request.getRequestURI())
-                .message(ex.getMessage())
+                .message("field error")
                 .errors(fieldErrors)
                 .build();
     }
