@@ -1,4 +1,4 @@
-package com.example.wasla.util;
+package com.example.wasla.service;
 
 import com.example.wasla.dto.request.LoginRequest;
 import com.example.wasla.dto.request.ClientRegisterRequest;
@@ -11,6 +11,7 @@ import com.example.wasla.model.enums.Role;
 import com.example.wasla.model.enums.VehicleType;
 import com.example.wasla.repository.DriverProfileRepository;
 import com.example.wasla.repository.UserRepository;
+import com.example.wasla.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final DriverProfileRepository driverProfileRepository;
@@ -48,8 +48,6 @@ public class AuthService {
                 .licensePlate(request.getLicensePlate())
                 .user(savedUser)
                 .isAvailable(true)
-                .currentLat(90.22)
-                .currentLng(66.5)
                 .build();
         driverProfileRepository.save(driverProfile);
 

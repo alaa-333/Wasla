@@ -1,4 +1,4 @@
-package com.example.wasla.util;
+package com.example.wasla.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

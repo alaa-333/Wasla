@@ -1,6 +1,5 @@
-package com.example.wasla.filter;
+package com.example.wasla.security;
 
-import com.example.wasla.util.JwtService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
