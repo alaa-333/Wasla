@@ -448,17 +448,6 @@ docker-compose -f docker-compose-dev.yml up -d
 docker-compose up -d
 ```
 
----
-
-## 📊 Performance
-
-- ⚡ **Response Time:** < 100ms (average)
-- 🔄 **Concurrent Users:** 1000+ supported
-- 💾 **Database:** Optimized with 20+ indexes
-- 🚀 **Caching:** Redis for session management
-- 📈 **Scalability:** Horizontal scaling ready
-
----
 
 ## 🔒 Security
 
@@ -533,7 +522,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 <img src="https://github.com/alaa-333.png" width="100px;" alt="Alaa"/><br />
 <sub><b>Alaa</b></sub>
 </a><br />
-<sub>Lead Developer</sub>
+<sub>Backend Developer</sub>
 </td>
 </tr>
 </table>
@@ -547,15 +536,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - MapStruct for compile-time mapping
 - All contributors and supporters
 
----
 
-## 📞 Support
-
-- 📧 Email: support@wasla.com
-- 🐛 Issues: [GitHub Issues](https://github.com/alaa-333/Wasla/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/alaa-333/Wasla/discussions)
-
----
 
 <div align="center">
 
