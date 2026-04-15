@@ -1,80 +1,31 @@
-# 📁 مجلد Assets
+# Assets
 
-هذا المجلد يحتوي على جميع الموارد الثابتة للتطبيق.
+Static assets for the Wasla app.
 
----
-
-## 📂 الهيكل
+## Structure
 
 ```
 assets/
-├── images/     # الصور
-└── icons/      # الأيقونات
+├── images/          # App images (logo, icons, etc.)
+│   └── .gitkeep
+├── icons/           # Custom icons
+│   └── .gitkeep
+└── README.md        # This file
 ```
 
----
+## Usage
 
-## 🖼️ images/
+Add assets to `pubspec.yaml`:
 
-ضع هنا جميع الصور المستخدمة في التطبيق:
-- شعار التطبيق (logo)
-- صور الخلفيات
-- صور التوضيح
-- إلخ...
-
-**مثال:**
-```
-assets/images/
-├── logo.png
-├── splash_bg.png
-└── empty_state.png
+```yaml
+flutter:
+  assets:
+    - assets/images/
+    - assets/icons/
 ```
 
----
+## Important Notes
 
-## 🎨 icons/
-
-ضع هنا جميع الأيقونات المخصصة:
-- أيقونات مخصصة
-- أيقونات SVG
-- إلخ...
-
-**مثال:**
-```
-assets/icons/
-├── truck_icon.svg
-├── location_pin.svg
-└── star_filled.svg
-```
-
----
-
-## 📝 ملاحظات
-
-### استخدام الصور في الكود
-
-```dart
-// صورة من assets
-Image.asset('assets/images/logo.png')
-
-// أيقونة من assets
-SvgPicture.asset('assets/icons/truck_icon.svg')
-```
-
-### إضافة صور جديدة
-
-1. ضع الصورة في المجلد المناسب
-2. لا حاجة لتحديث `pubspec.yaml` (المجلدات مضافة بالفعل)
-3. استخدم الصورة في الكود
-
----
-
-## ⚠️ تنبيه
-
-**التطبيق حالياً 100% نصي - لا يوجد رفع صور من المستخدم**
-
-هذا المجلد للموارد الثابتة فقط (شعار، أيقونات، إلخ)، وليس لصور المستخدمين.
-
----
-
-**آخر تحديث:** 2026-01-15
+- ⚠️ **No user-uploaded images** - App is 100% text-based
+- ✅ Only static app assets (logo, icons, etc.)
+- ✅ Use standard Flutter asset loading: `AssetImage('assets/images/logo.png')`

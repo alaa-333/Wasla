@@ -1,138 +1,106 @@
-# 🔧 حل المشاكل - Troubleshooting
+# Troubleshooting
 
-## ⚠️ تحذيرات Assets في VS Code
+Common issues and solutions.
 
-### المشكلة
+## VS Code Asset Warnings
+
+**Issue:**
 ```
 The asset directory 'assets/images/' doesn't exist.
 The asset directory 'assets/icons/' doesn't exist.
 ```
 
-### السبب
-VS Code لم يكتشف المجلدات الجديدة بعد (cache issue).
+**Solution:**
+VS Code cache issue. Reload the window:
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
+2. Type "Reload Window"
+3. Select "Developer: Reload Window"
 
-### الحل
+**Note:** The directories exist and the app works fine. This is just a VS Code display issue.
 
-#### الطريقة 1: إعادة تحميل النافذة (موصى بها) ⭐
-```
-1. اضغط Ctrl+Shift+P (أو Cmd+Shift+P على Mac)
-2. اكتب "Reload Window"
-3. اختر "Developer: Reload Window"
-```
+## Backend Connection Issues
 
-#### الطريقة 2: إعادة فتح المشروع
-```
-1. أغلق VS Code بالكامل
-2. افتح المشروع مرة أخرى
-```
+**Issue:** "لا يمكن الاتصال بالخادم"
 
-#### الطريقة 3: تشغيل Flutter
+**Solutions:**
+1. **Start backend:**
+   ```bash
+   # Make sure backend runs on localhost:8080
+   ./mvnw spring-boot:run
+   ```
+
+2. **Check platform URL:**
+   - Web: `http://localhost:8080` ✅
+   - Android Emulator: `http://10.0.2.2:8080` ✅
+   - Physical Device: Set your IP in `app_config.dart`
+
+3. **Test connection:**
+   ```bash
+   curl http://localhost:8080/api/v1/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"test@example.com","password":"password123"}'
+   ```
+
+## Build Issues
+
+**Issue:** Build failed
+
+**Solution:**
 ```bash
-flutter pub get
 flutter clean
 flutter pub get
+flutter run
 ```
 
-#### الطريقة 4: تجاهل التحذير
-```
-⚠️ التحذير لا يؤثر على عمل التطبيق
-✅ المجلدات موجودة فعلاً
-✅ التطبيق سيعمل بشكل طبيعي
-```
+## Login Issues
 
-### التحقق من وجود المجلدات
-```bash
-# Windows PowerShell
-Test-Path "assets/images"  # يجب أن يعطي True
-Test-Path "assets/icons"   # يجب أن يعطي True
+**Issue:** "بيانات الدخول غير صحيحة"
 
-# Linux/Mac
-ls -la assets/
-```
+**Solutions:**
+1. Check user exists in database
+2. Verify email and password are correct
+3. Check backend logs for errors
 
-### النتيجة المتوقعة
-```
-assets/
-├── images/
-│   └── .gitkeep
-├── icons/
-│   └── .gitkeep
-└── README.md
-```
+## Physical Device Connection
 
----
+**Issue:** App can't connect from physical device
 
-## 🐛 مشاكل شائعة أخرى
+**Solutions:**
+1. **Get your IP:**
+   ```bash
+   # Windows
+   ipconfig
+   
+   # Mac/Linux
+   ifconfig
+   ```
 
-### 1. أخطاء في الكود
+2. **Update config:**
+   ```dart
+   // In lib/core/config/app_config.dart
+   static const String _physicalDeviceUrl = 'http://192.168.1.100:8080';
+   ```
 
-#### المشكلة
-```
-The getter 'textMain' isn't defined for the type 'AppColors'
-```
+3. **Ensure backend listens on 0.0.0.0:**
+   ```yaml
+   # application.yml
+   server:
+     address: 0.0.0.0
+     port: 8080
+   ```
 
-#### الحل
-✅ تم إصلاحه! استخدم:
-- `AppColors.textPrimary` بدلاً من `AppColors.textMain`
-- `AppColors.textSecondary` بدلاً من `AppColors.textGrey`
+## Common Error Messages
 
----
+| Error | Meaning | Solution |
+|-------|---------|----------|
+| "لا يمكن الاتصال بالخادم" | Backend offline | Start backend |
+| "لا يوجد اتصال بالإنترنت" | No internet | Check connection |
+| "بيانات الدخول غير صحيحة" | Wrong credentials | Check email/password |
+| "انتهت مهلة الاتصال" | Timeout | Check network/backend |
 
-### 2. مكتبات مفقودة
+## Project Rules Reminder
 
-#### المشكلة
-```
-Target of URI doesn't exist: 'package:image_picker/image_picker.dart'
-```
-
-#### الحل
-✅ تم إصلاحه! المكتبة تم إزالتها لأن التطبيق 100% نصي.
-
----
-
-### 3. Backend غير متصل
-
-#### المشكلة
-```
-DioException: Connection refused
-```
-
-#### الحل
-تأكد من تشغيل Spring Boot backend:
-```bash
-# تحقق من أن Backend يعمل على:
-http://localhost:8080
-```
-
----
-
-## 📝 ملاحظات مهمة
-
-### التطبيق 100% نصي
-```
-🚫 لا يوجد رفع صور
-🚫 لا يوجد image_picker
-🚫 لا يوجد cached_network_image
-✅ نصي فقط
-```
-
-### مجلد Assets
-```
-📁 assets/images/  - للصور الثابتة فقط (شعار، أيقونات)
-📁 assets/icons/   - للأيقونات المخصصة
-⚠️ ليس لصور المستخدمين
-```
-
----
-
-## 🆘 المساعدة
-
-إذا واجهت مشكلة أخرى:
-
-1. راجع `docs/README.md`
-2. راجع `docs/DEVELOPER_GUIDE.md`
-3. راجع `docs/FINAL_SESSION_REPORT.md`
-
----
-
-**آخر تحديث:** 2026-01-15
+- ✅ Text-only (no image upload)
+- ✅ Bidding-only (no online payment)  
+- ✅ Arabic UI
+- ✅ Spring Boot backend (not Firebase)
