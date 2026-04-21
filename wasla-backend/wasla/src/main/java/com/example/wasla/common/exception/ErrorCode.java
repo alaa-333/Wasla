@@ -48,6 +48,10 @@ public enum ErrorCode {
     ROUTE_NOT_FOUND("ROUT-002", "Could not calculate a valid route", HttpStatus.BAD_REQUEST),
     DISTANCE_CALCULATION_FAILED("ROUT-003", "Distance calculation service is unreachable", HttpStatus.SERVICE_UNAVAILABLE),
 
+    // ── Location Tracking (LOC-XXX) ──
+    LOCATION_NOT_FOUND("LOC-001", "Location not found", HttpStatus.NOT_FOUND),
+    INVALID_COORDINATES("LOC-002", "Invalid GPS coordinates", HttpStatus.BAD_REQUEST),
+
     // ── Pricing (PRC-XXX) ──
     INVALID_PRICE_CALCULATION("PRC-001", "Failed to calculate pricing", HttpStatus.INTERNAL_SERVER_ERROR),
 
