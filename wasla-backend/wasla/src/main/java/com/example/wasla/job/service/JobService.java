@@ -114,4 +114,23 @@ public class JobService {
             throw new WaslaAppException(ErrorCode.JOB_STATUS_INVALID);
         }
     }
+
+    public boolean cancelJobById(UUID id) {
+
+        Job job = jobRepository.findById(id)
+                .orElseThrow(() -> new WaslaAppException(ErrorCode.JOB_NOT_FOUND));
+
+
+        if (job.getStatus() == JobStatus.CANCELLED) {
+            throw new WaslaAppException(ErrorCode.JOB_STATUS_INVALID);
+        }
+
+        if (job.getStatus() != JobStatus.OPEN || job.getStatus() != JobStatus.BIDDING) {
+            throw new WaslaAppException(ErrorCode.JOB_STATUS_INVALID);
+        }
+
+        job.setStatus(JobStatus.CANCELLED);
+        return true;
+
+    }
 }

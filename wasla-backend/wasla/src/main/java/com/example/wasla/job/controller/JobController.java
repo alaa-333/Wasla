@@ -45,6 +45,19 @@ public class JobController {
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> cancelJobById(@PathVariable UUID id) {
+
+        boolean isCanceled = jobService.cancelJobById(id);
+
+        if (isCanceled) {
+            return ResponseEntity.ok(ApiResponse.ok("job canceled successfully"));
+        } else {
+            return ResponseEntity.ok(ApiResponse.ok("job not canceled "));
+
+        }
+    }
+
     @Operation(summary = "Get my jobs (client or driver)")
     @GetMapping("/my")
     public ResponseEntity<ApiResponse<Page<JobListDto>>> getMyJobs(
