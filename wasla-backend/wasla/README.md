@@ -4,9 +4,10 @@
 
 ### Smart Logistics Marketplace Platform
 
-[![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.3-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![PostGIS](https://img.shields.io/badge/PostGIS-3.4-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgis.net/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
@@ -35,8 +36,9 @@ Wasla eliminates inefficiencies by providing:
 - 🤝 **Direct Connection** - No middlemen between clients and drivers
 - 💰 **Competitive Bidding** - Market-driven pricing ensures fairness
 - 📍 **Real-time Tracking** - Live GPS updates via WebSocket
+- 🗺️ **Geospatial Matching** - PostGIS-powered nearby job/driver discovery
 - ⭐ **Trust System** - Rating mechanism ensures quality service
-- 🔔 **Smart Notifications** - Location-based job matching
+- 🔔 **Smart Notifications** - FCM push notifications for all events
 
 ---
 
@@ -54,17 +56,19 @@ Wasla eliminates inefficiencies by providing:
 - ✅ Track driver location in real-time
 - ✅ Rate drivers after job completion
 - ✅ View complete job history
+- ✅ Find available drivers nearby
 
 </td>
 <td width="50%">
 
 ### 🚛 For Drivers
 
-- ✅ Discover nearby jobs automatically
+- ✅ Discover nearby jobs automatically (PostGIS ST_DWithin)
 - ✅ Submit competitive price bids
-- ✅ Manage job status (accept, start, complete)
+- ✅ Manage job status (start, complete)
 - ✅ Update GPS location in real-time
 - ✅ Build reputation through ratings
+- ✅ Toggle availability status
 - ✅ Track earnings and completed jobs
 
 </td>
@@ -73,15 +77,17 @@ Wasla eliminates inefficiencies by providing:
 
 ### 🔥 Technical Highlights
 
-- 🔐 **JWT Authentication** with refresh token rotation
-- 🗄️ **PostgreSQL + PostGIS** for geospatial queries
+- 🔐 **JWT Authentication** (HS384) with refresh token rotation
+- 🗄️ **PostgreSQL + PostGIS** for geospatial queries (ST_DWithin)
 - 🚀 **Redis Caching** for performance optimization
 - 📊 **Flyway Migrations** for database version control
 - 🗺️ **MapStruct** for compile-time DTO mapping
-- � **OpenAPI/Swagger** for interactive API documentation
-- � **WebSocket** for real-time communication
+- 📖 **OpenAPI/Swagger** for interactive API documentation
+- 🔌 **WebSocket (STOMP)** for real-time communication
 - ⏰ **Scheduled Tasks** for automatic job expiry
-- � **Daocker Support** with multi-stage builds
+- 🐳 **Docker Support** with multi-stage builds
+- 🔔 **Firebase Cloud Messaging** for push notifications
+- 📍 **Location History** with route tracking
 
 ---
 
@@ -92,8 +98,8 @@ Wasla eliminates inefficiencies by providing:
 <td>
 
 **Backend Framework**
-- Java 17
-- Spring Boot 3.3.3
+- Java 21 (LTS)
+- Spring Boot 3.4
 - Spring Security
 - Spring Data JPA
 - Spring WebSocket
@@ -104,7 +110,7 @@ Wasla eliminates inefficiencies by providing:
 
 **Database & Cache**
 - PostgreSQL 16
-- PostGIS 3.4
+- PostGIS 3.4 (Spatial)
 - Redis 7
 - Flyway
 - HikariCP
@@ -117,6 +123,7 @@ Wasla eliminates inefficiencies by providing:
 - MapStruct 1.5.5
 - JJWT 0.13.0
 - SpringDoc OpenAPI
+- Firebase Admin SDK
 - Docker & Docker Compose
 
 </td>
@@ -130,7 +137,7 @@ Wasla eliminates inefficiencies by providing:
 ### Prerequisites
 
 ```bash
-☕ Java 17+
+☕ Java 21+
 🐳 Docker & Docker Compose
 📦 Maven 3.6+
 ```
@@ -188,9 +195,9 @@ Visit **[Swagger UI](http://localhost:8080/swagger-ui.html)** for complete inter
 ```http
 POST   /api/v1/auth/register/client    # Register as client
 POST   /api/v1/auth/register/driver    # Register as driver
-POST   /api/v1/auth/login               # Login (returns JWT)
-POST   /api/v1/auth/refresh             # Refresh access token
-POST   /api/v1/auth/logout              # Logout (invalidate token)
+POST   /api/v1/auth/login              # Login (returns JWT)
+POST   /api/v1/auth/refresh            # Refresh access token
+POST   /api/v1/auth/logout             # Logout (invalidate token)
 ```
 
 **Example Request:**
@@ -228,7 +235,7 @@ POST /api/v1/auth/login
 POST   /api/v1/jobs              # Create job (CLIENT)
 GET    /api/v1/jobs/{id}         # Get job details
 GET    /api/v1/jobs/my           # Get my jobs (paginated)
-GET    /api/v1/jobs/nearby       # Find nearby jobs (DRIVER)
+GET    /api/v1/jobs/nearby       # Find nearby jobs (DRIVER) - PostGIS
 PATCH  /api/v1/jobs/{id}/status  # Update job status (DRIVER)
 ```
 
@@ -238,10 +245,38 @@ PATCH  /api/v1/jobs/{id}/status  # Update job status (DRIVER)
 <summary><b>💰 Bidding System</b></summary>
 
 ```http
-POST   /api/v1/bids                # Submit bid (DRIVER)
-GET    /api/v1/bids/job/{jobId}    # Get bids for job (CLIENT)
-PATCH  /api/v1/bids/{id}/accept    # Accept bid (CLIENT)
-GET    /api/v1/bids/my             # Get my bids (DRIVER)
+POST   /api/v1/jobs/{jobId}/bids           # Submit bid (DRIVER)
+GET    /api/v1/jobs/{jobId}/bids           # Get bids for job (CLIENT)
+PATCH  /api/v1/jobs/{jobId}/bids/{bidId}/accept  # Accept bid (CLIENT)
+```
+
+</details>
+
+<details>
+<summary><b>🗺️ Spatial Queries (PostGIS)</b></summary>
+
+```http
+GET    /api/v1/spatial/jobs/nearby          # Find jobs within radius (DRIVER)
+GET    /api/v1/spatial/jobs/nearby/count    # Count jobs within radius
+GET    /api/v1/spatial/drivers/nearby       # Find drivers within radius (CLIENT)
+GET    /api/v1/spatial/drivers/nearby/count # Count drivers within radius
+GET    /api/v1/spatial/analytics/coverage   # Multi-radius coverage analytics
+GET    /api/v1/spatial/distance             # Calculate distance between points
+```
+
+**Example: Find nearby jobs**
+```
+GET /api/v1/spatial/jobs/nearby?lat=30.0444&lng=31.2357&radiusKm=15
+```
+
+</details>
+
+<details>
+<summary><b>📍 Location History</b></summary>
+
+```http
+GET    /api/v1/locations/jobs/{jobId}/route   # Get complete route history
+GET    /api/v1/locations/jobs/{jobId}/latest  # Get latest GPS position
 ```
 
 </details>
@@ -250,8 +285,8 @@ GET    /api/v1/bids/my             # Get my bids (DRIVER)
 <summary><b>⭐ Ratings</b></summary>
 
 ```http
-POST   /api/v1/ratings                # Rate driver (CLIENT)
-GET    /api/v1/ratings/driver/{id}    # Get driver ratings
+POST   /api/v1/jobs/{jobId}/rating   # Rate driver (CLIENT)
+GET    /api/v1/jobs/{jobId}/rating   # Get rating for job
 ```
 
 </details>
@@ -262,10 +297,15 @@ GET    /api/v1/ratings/driver/{id}    # Get driver ratings
 ```http
 GET    /api/v1/clients/me             # Get my profile (CLIENT)
 PUT    /api/v1/clients/me/profile     # Update profile (CLIENT)
+PUT    /api/v1/clients/me/fcm-token   # Update FCM token (CLIENT)
+
 GET    /api/v1/drivers/me             # Get my profile (DRIVER)
 PUT    /api/v1/drivers/me/profile     # Update profile (DRIVER)
 PUT    /api/v1/drivers/me/status      # Update availability (DRIVER)
 PUT    /api/v1/drivers/me/location    # Update GPS location (DRIVER)
+PUT    /api/v1/drivers/me/fcm-token   # Update FCM token (DRIVER)
+GET    /api/v1/drivers/me/bids        # Get my submitted bids (DRIVER)
+GET    /api/v1/drivers/{id}           # Get public driver profile
 ```
 
 </details>
@@ -310,6 +350,7 @@ EXPIRED (if no bid accepted within 30 minutes)
 │                   INFRASTRUCTURE                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
 │  │  PostgreSQL  │  │    Redis     │  │   Firebase   │      │
+│  │  + PostGIS   │  │              │  │     FCM      │      │
 │  └──────────────┘  └──────────────┘  └──────────────┘      │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -323,31 +364,45 @@ com.example.wasla/
 │   ├── entity/
 │   ├── repository/
 │   ├── security/
-│   └── AuthService.java
-├── common/            # Shared components
-│   ├── dto/          # ApiResponse, ApiError, Pagination
-│   ├── entity/       # BaseEntity
-│   └── exception/    # Global exception handling
-├── config/           # Spring configuration
-├── job/              # Job & bidding domain
+│   └── AuthController.java, AuthService.java
+├── common/             # Shared components
+│   ├── dto/           # ApiResponse, ApiError, Pagination
+│   ├── entity/        # BaseEntity
+│   └── exception/     # Global exception handling
+├── config/            # Spring configuration
+│   ├── SecurityConfig.java
+│   ├── WebSocketConfig.java
+│   ├── FirebaseConfig.java
+│   └── BeanConfiguration.java
+├── job/               # Job & bidding domain
 │   ├── controller/
 │   ├── dto/
 │   ├── entity/
 │   ├── mapper/
 │   ├── repository/
-│   ├── scheduler/
 │   └── service/
-├── location/         # Real-time GPS tracking
-├── notification/     # Push notifications
-├── rating/          # Rating system
-└── user/            # User management
+├── location/          # Real-time GPS tracking & spatial queries
+│   ├── controller/
+│   ├── dto/
+│   ├── service/
+│   ├── LocationHistory.java
+│   └── LocationService.java
+├── notification/      # Push notifications (FCM)
+│   ├── controller/
+│   ├── dto/
+│   └── service/
+├── rating/            # Rating system
+│   ├── RatingController.java
+│   ├── RatingService.java
+│   └── Rating.java
+└── user/              # User management
     ├── client/
     └── driver/
 ```
 
 ---
 
-## �️ Database Schema
+## 🗄️ Database Schema
 
 ### Entity Relationship Diagram
 
@@ -359,42 +414,28 @@ com.example.wasla/
 │ email        │    1:N  │ client_id    │  N:1    │ email        │
 │ password     │         │ driver_id    │         │ vehicle_type │
 │ phone        │         │ status       │         │ rating_avg   │
-└──────────────┘         │ pickup_*     │         │ is_available │
-                         │ dropoff_*    │         └──────────────┘
-                         └──────┬───────┘
-                                │
+│ fcm_token    │         │ pickup_*     │         │ is_available │
+└──────────────┘         │ dropoff_*    │         │ current_lat  │
+                         │ accepted_price│        │ current_lng  │
+                         └──────┬───────┘         │ fcm_token    │
+                                │                 └──────────────┘
                          ┌──────┴───────┐
                          │              │
-                    ┌────▼────┐    ┌───▼────┐
-                    │  BIDS   │    │ RATINGS│
-                    ├─────────┤    ├────────┤
-                    │ job_id  │    │ job_id │
-                    │ driver_id│   │ score  │
-                    │ price   │    │ comment│
-                    └─────────┘    └────────┘
+                    ┌────▼────┐   ┌─────▼────┐   ┌──────────────┐
+                    │  BIDS   │   │ RATINGS  │   │ LOCATION_    │
+                    ├─────────┤   ├──────────┤   │ HISTORY      │
+                    │ job_id  │   │ job_id   │   ├──────────────┤
+                    │ driver_id│  │ score    │   │ job_id       │
+                    │ price   │   │ comment  │   │ driver_id    │
+                    │ status  │   └──────────┘   │ lat, lng     │
+                    └─────────┘                  │ recorded_at  │
+                                                └──────────────┘
 ```
 
 **See [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) for complete documentation.**
 
 ---
 
-## ⚙️ Configuration
-
-### Environment Variables
-
-```bash
-# Database
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/wasla
-SPRING_DATASOURCE_USERNAME=wasla
-SPRING_DATASOURCE_PASSWORD=secret
-
-# Redis
-SPRING_DATA_REDIS_HOST=localhost
-SPRING_DATA_REDIS_PORT=6379
-
-# JWT
-JWT_SECRET=your-secret-key-must-be-at-least-256-bits
-```
 
 ### Application Profiles
 
@@ -448,68 +489,105 @@ docker-compose -f docker-compose-dev.yml up -d
 docker-compose up -d
 ```
 
+---
 
 ## 🔒 Security
 
-- ✅ JWT authentication with refresh token rotation
+- ✅ JWT authentication (HS384) with refresh token rotation
 - ✅ BCrypt password hashing
 - ✅ Role-based access control (RBAC)
 - ✅ SQL injection prevention (prepared statements)
 - ✅ CORS configuration
-- ✅ Rate limiting (planned)
 - ✅ Input validation with Bean Validation
+- ✅ Transaction isolation (SERIALIZABLE for bid acceptance)
+- ✅ Phone number visibility restricted to confirmed jobs
 
 ---
 
-## � Roadmap
+## 🗺️ PostGIS Spatial Queries
+
+Wasla uses PostGIS for accurate geospatial queries:
+
+### Find Nearby Jobs (ST_DWithin)
+
+```sql
+SELECT j.*, 
+       ST_Distance(
+         ST_MakePoint(j.pickup_lng, j.pickup_lat)::geography,
+         ST_MakePoint(:driverLng, :driverLat)::geography
+       ) AS distance_meters
+FROM jobs j
+WHERE j.status IN ('OPEN', 'BIDDING')
+  AND j.expires_at > NOW()
+  AND ST_DWithin(
+        ST_MakePoint(j.pickup_lng, j.pickup_lat)::geography,
+        ST_MakePoint(:driverLng, :driverLat)::geography,
+        15000  -- 15km radius
+      )
+ORDER BY distance_meters ASC;
+```
+
+### Find Available Drivers Nearby
+
+```sql
+SELECT d.*,
+       ST_Distance(
+         ST_MakePoint(d.current_lng, d.current_lat)::geography,
+         ST_MakePoint(:lng, :lat)::geography
+       ) AS distance_meters
+FROM drivers d
+WHERE d.is_available = TRUE
+  AND d.current_lat IS NOT NULL
+  AND ST_DWithin(
+        ST_MakePoint(d.current_lng, d.current_lat)::geography,
+        ST_MakePoint(:lng, :lat)::geography,
+        10000  -- 10km radius
+      )
+ORDER BY distance_meters ASC;
+```
+
+---
+
+## 🔔 FCM Notifications
+
+Firebase Cloud Messaging is fully integrated for push notifications:
+
+| Event | Recipient | Trigger |
+|-------|-----------|---------|
+| `JOB_POSTED` | Nearby drivers | Job created |
+| `BID_PLACED` | Job owner (client) | Driver submits bid |
+| `BID_ACCEPTED` | Winning driver | Client accepts bid |
+| `JOB_STARTED` | Client | Driver starts job |
+| `JOB_COMPLETED` | Client | Driver completes job |
+| `DRIVER_RATED` | Driver | Client submits rating |
+
+---
+
+## 📋 Roadmap
 
 - [x] Core authentication system
 - [x] Job creation and bidding
-- [x] Real-time location tracking
+- [x] Real-time location tracking (WebSocket)
 - [x] Rating system
 - [x] Docker support
+- [x] PostGIS spatial queries (ST_DWithin)
+- [x] Firebase Cloud Messaging
+- [x] Location history & route tracking
 - [ ] Payment integration
-- [ ] Advanced geospatial queries
 - [ ] Mobile app (Flutter)
 - [ ] Admin dashboard
 - [ ] Analytics and reporting
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'feat: add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-### Commit Convention
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat:` New feature
-- `fix:` Bug fix
-- `docs:` Documentation changes
-- `refactor:` Code refactoring
-- `test:` Test additions/changes
-- `chore:` Maintenance tasks
-
----
 
 ## 📝 Documentation
 
 - 📖 [API Documentation](http://localhost:8080/swagger-ui.html)
 - 🗄️ [Database Schema](DATABASE_SCHEMA.md)
-- 📋 [Technical Documentation](TECHNICAL_DOCUMENTATION.md)
+
 
 ---
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -529,20 +607,11 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 🙏 Acknowledgments
-
-- Spring Boot team for the excellent framework
-- PostgreSQL and PostGIS communities
-- MapStruct for compile-time mapping
-- All contributors and supporters
-
 
 
 <div align="center">
 
 **⭐ Star this repo if you find it helpful!**
-
-Made with ❤️ by the Wasla Team
 
 [⬆ Back to Top](#-wasla)
 
