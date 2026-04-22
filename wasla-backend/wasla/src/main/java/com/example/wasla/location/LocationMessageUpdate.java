@@ -26,16 +26,4 @@ public class LocationMessageUpdate {
     @DecimalMin(value = "-180.0", message = "Longitude must be >= -180")
     @DecimalMax(value = "180.0", message = "Longitude must be <= 180")
     private BigDecimal lng;
-
-    @DecimalMin(value = "0.0", message = "Speed cannot be negative")
-    private BigDecimal speed;      // km/h
-
-    @DecimalMin(value = "0.0", message = "Accuracy cannot be negative")
-    private BigDecimal accuracy;   // meters
-
-    @DecimalMin(value = "0.0", message = "Heading must be between 0 and 360")
-    @DecimalMax(value = "360.0", message = "Heading must be between 0 and 360")
-    private BigDecimal heading;    // degrees
-
-    private Long timestamp;
 }

@@ -28,8 +28,6 @@ public class RouteDto {
     public static class LocationPoint {
         private BigDecimal latitude;
         private BigDecimal longitude;
-        private BigDecimal speed;
-        private BigDecimal heading;
         private LocalDateTime timestamp;
     }
 }

@@ -11,14 +11,14 @@ import java.util.UUID;
 @Repository
 public interface LocationRepository extends JpaRepository<LocationHistory, UUID> {
     
-    // Get all locations for a job, ordered by timestamp (newest first)
-    List<LocationHistory> findByJobIdOrderByTimestampDesc(UUID jobId);
+    // Get all locations for a job, ordered by createdAt (newest first)
+    List<LocationHistory> findByJobIdOrderByCreatedAtDesc(UUID jobId);
     
     // Get latest location for a job
-    Optional<LocationHistory> findFirstByJobIdOrderByTimestampDesc(UUID jobId);
+    Optional<LocationHistory> findFirstByJobIdOrderByCreatedAtDesc(UUID jobId);
     
     // Get locations for a driver within time range
-    List<LocationHistory> findByDriverIdAndTimestampBetween(
+    List<LocationHistory> findByDriverIdAndCreatedAtBetween(
         UUID driverId, 
         LocalDateTime start, 
         LocalDateTime end
@@ -28,5 +28,5 @@ public interface LocationRepository extends JpaRepository<LocationHistory, UUID>
     long countByJobId(UUID jobId);
     
     // Delete old locations (for cleanup job)
-    void deleteByTimestampBefore(LocalDateTime cutoffDate);
+    void deleteByCreatedAtBefore(LocalDateTime cutoffDate);
 }

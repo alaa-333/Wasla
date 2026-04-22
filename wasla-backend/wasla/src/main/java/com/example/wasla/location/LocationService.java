@@ -32,10 +32,6 @@ public class LocationService {
                 .jobId(UUID.fromString(messageUpdate.getJobId()))
                 .lat(messageUpdate.getLat())
                 .lng(messageUpdate.getLng())
-                .speed(messageUpdate.getSpeed())
-                .accuracy(messageUpdate.getAccuracy())
-                .heading(messageUpdate.getHeading())
-                .timestamp(LocalDateTime.now())
                 .build();
 
         locationRepository.save(location);
@@ -45,7 +41,7 @@ public class LocationService {
 
     public RouteDto getJobRoute(UUID jobId) {
         List<LocationHistory> locations = locationRepository
-                .findByJobIdOrderByTimestampDesc(jobId);
+                .findByJobIdOrderByCreatedAtDesc(jobId);
 
         if (locations.isEmpty()) {
             throw new WaslaAppException(ErrorCode.LOCATION_NOT_FOUND);
@@ -64,7 +60,7 @@ public class LocationService {
     }
 
     public LocationHistory getLatestLocation(UUID jobId) {
-        return locationRepository.findFirstByJobIdOrderByTimestampDesc(jobId)
+        return locationRepository.findFirstByJobIdOrderByCreatedAtDesc(jobId)
                 .orElseThrow(() -> new WaslaAppException(ErrorCode.LOCATION_NOT_FOUND));
     }
 
@@ -93,7 +89,10 @@ public class LocationService {
     }
 
     /**
-     * Calculate distance between two points using Haversine formula
+     * Calculate distance between two points using Haversine formula.
+     * This is a fallback for when PostGIS is not available.
+     * For production, prefer using PostGIS ST_Distance for better accuracy.
+     * 
      * @return distance in kilometers
      */
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -109,6 +108,45 @@ public class LocationService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return R * c;
+    }
+
+    /**
+     * Calculate distance between two coordinates in meters.
+     * Uses the Haversine formula for accurate Earth-surface distance.
+     * 
+     * @param lat1 First point latitude
+     * @param lng1 First point longitude
+     * @param lat2 Second point latitude
+     * @param lng2 Second point longitude
+     * @return Distance in meters
+     */
+    public double calculateDistanceInMeters(BigDecimal lat1, BigDecimal lng1, 
+                                             BigDecimal lat2, BigDecimal lng2) {
+        double distanceKm = calculateDistance(
+            lat1.doubleValue(), 
+            lng1.doubleValue(),
+            lat2.doubleValue(), 
+            lng2.doubleValue()
+        );
+        return distanceKm * 1000; // Convert to meters
+    }
+
+    /**
+     * Check if a point is within a specified radius of another point.
+     * Useful for client-side validation before making API calls.
+     * 
+     * @param centerLat Center point latitude
+     * @param centerLng Center point longitude
+     * @param pointLat Point to check latitude
+     * @param pointLng Point to check longitude
+     * @param radiusMeters Radius in meters
+     * @return true if point is within radius
+     */
+    public boolean isWithinRadius(BigDecimal centerLat, BigDecimal centerLng,
+                                   BigDecimal pointLat, BigDecimal pointLng,
+                                   double radiusMeters) {
+        double distanceMeters = calculateDistanceInMeters(centerLat, centerLng, pointLat, pointLng);
+        return distanceMeters <= radiusMeters;
     }
 
     private void validateCoordinates(BigDecimal lat, BigDecimal lng) {
@@ -127,9 +165,7 @@ public class LocationService {
         return RouteDto.LocationPoint.builder()
                 .latitude(location.getLat())
                 .longitude(location.getLng())
-                .speed(location.getSpeed())
-                .heading(location.getHeading())
-                .timestamp(location.getTimestamp())
+                .timestamp(location.getCreatedAt())
                 .build();
     }
 }
