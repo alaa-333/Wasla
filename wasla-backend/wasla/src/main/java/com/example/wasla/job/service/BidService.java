@@ -12,11 +12,13 @@ import com.example.wasla.job.entity.JobStatus;
 import com.example.wasla.job.mapper.JobMapper;
 import com.example.wasla.job.repository.BidRepository;
 import com.example.wasla.job.repository.JobRepository;
+import com.example.wasla.notification.service.NotificationPublisher;
 import com.example.wasla.user.client.entity.Client;
 import com.example.wasla.user.driver.entity.Driver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -36,6 +38,7 @@ public class BidService {
     private final BidRepository bidRepository;
     private final JobRepository jobRepository;
     private final JobMapper jobMapper;
+    private final NotificationPublisher notificationPublisher;
 
     @Transactional
     public BidResponseDto submitBid(UUID jobId, Driver driver, SubmitBidRequest request) {
@@ -74,6 +77,17 @@ public class BidService {
         }
 
         log.info("Bid {} submitted on job {} by driver {}", saved.getId(), jobId, driver.getId());
+        
+        // Publish notification to client
+        notificationPublisher.publishBidPlaced(
+            jobId,
+            saved.getId(),
+            job.getClient().getId(),
+            driver.getId(),
+            driver.getFullName(),
+            request.getPrice().toString()
+        );
+        
         return jobMapper.toBidResponseDto(saved);
     }
 
@@ -97,7 +111,7 @@ public class BidService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public JobResponseDto acceptBid(UUID jobId, UUID bidId, Client client) {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new WaslaAppException(ErrorCode.JOB_NOT_FOUND));
@@ -135,6 +149,21 @@ public class BidService {
 
         log.info("Bid {} accepted on job {} — driver {} assigned, price {}",
                 bidId, jobId, bid.getDriver().getId(), bid.getPrice());
+
+        // Publish notification to winning driver
+        notificationPublisher.publishBidAccepted(
+            jobId,
+            bidId,
+            bid.getDriver().getId(),
+            client.getId(),
+            job.getCargoDesc() != null ? job.getCargoDesc() : "Your Job"
+        );
+
+        // Publish notifications to rejected drivers
+        List<Bid> rejectedBids = bidRepository.findByJobIdAndStatus(jobId, BidStatus.WITHDRAWN);
+        rejectedBids.forEach(rejectedBid -> {
+            notificationPublisher.publishBidRejected(jobId, rejectedBid.getDriver().getId());
+        });
 
         return jobMapper.toResponseDto(saved);
     }

@@ -6,6 +6,7 @@ import com.example.wasla.job.dto.*;
 import com.example.wasla.job.entity.*;
 import com.example.wasla.job.mapper.JobMapper;
 import com.example.wasla.job.repository.JobRepository;
+import com.example.wasla.notification.service.NotificationPublisher;
 import com.example.wasla.user.client.entity.Client;
 import com.example.wasla.user.driver.entity.Driver;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class JobService {
 
     private final JobRepository jobRepository;
     private final JobMapper jobMapper;
+    private final NotificationPublisher notificationPublisher;
 
     private static final int JOB_EXPIRY_MINUTES = 30;
 
@@ -47,6 +49,14 @@ public class JobService {
 
         Job saved = jobRepository.save(job);
         log.info("Job created: id={} by client={}", saved.getId(), client.getId());
+        
+        // Publish notification event
+        notificationPublisher.publishJobPosted(
+            saved.getId(), 
+            client.getId(), 
+            saved.getCargoDesc() != null ? saved.getCargoDesc() : "New Job"
+        );
+        
         return jobMapper.toResponseDto(saved);
     }
 
@@ -71,10 +81,15 @@ public class JobService {
 
     @Transactional(readOnly = true)
     public List<JobListDto> getNearbyJobs(BigDecimal lat, BigDecimal lng, BigDecimal radiusKm) {
-        // TODO: When PostGIS is integrated, use ST_DWithin spatial query
-        // For now, return all open jobs that haven't expired
-        return jobRepository.findOpenJobs(LocalDateTime.now())
-                .stream()
+        // Convert km to meters for PostGIS
+        double radiusMeters = radiusKm.multiply(BigDecimal.valueOf(1000)).doubleValue();
+        
+        // Use PostGIS ST_DWithin spatial query for accurate distance-based filtering
+        List<Job> nearbyJobs = jobRepository.findNearbyJobs(lat, lng, radiusMeters, LocalDateTime.now());
+        
+        log.info("Found {} nearby jobs within {} km of ({}, {})", nearbyJobs.size(), radiusKm, lat, lng);
+        
+        return nearbyJobs.stream()
                 .map(jobMapper::toListDto)
                 .collect(Collectors.toList());
     }
@@ -99,6 +114,24 @@ public class JobService {
 
         Job saved = jobRepository.save(job);
         log.info("Job {} status updated: {} → {}", jobId, job.getStatus(), newStatus);
+        
+        // Publish notification events based on status
+        if (newStatus == JobStatus.IN_PROGRESS) {
+            notificationPublisher.publishJobStarted(
+                jobId, 
+                job.getClient().getId(), 
+                driver.getId(), 
+                driver.getFullName()
+            );
+        } else if (newStatus == JobStatus.COMPLETED) {
+            notificationPublisher.publishJobCompleted(
+                jobId, 
+                job.getClient().getId(), 
+                driver.getId(), 
+                driver.getFullName()
+            );
+        }
+        
         return jobMapper.toResponseDto(saved);
     }
 
@@ -125,7 +158,8 @@ public class JobService {
             throw new WaslaAppException(ErrorCode.JOB_STATUS_INVALID);
         }
 
-        if (job.getStatus() != JobStatus.OPEN || job.getStatus() != JobStatus.BIDDING) {
+        // Fix: Use AND instead of OR - job must be either OPEN or BIDDING to cancel
+        if (job.getStatus() != JobStatus.OPEN && job.getStatus() != JobStatus.BIDDING) {
             throw new WaslaAppException(ErrorCode.JOB_STATUS_INVALID);
         }
 
