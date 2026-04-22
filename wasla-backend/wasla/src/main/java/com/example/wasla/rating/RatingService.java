@@ -5,6 +5,7 @@ import com.example.wasla.common.exception.WaslaAppException;
 import com.example.wasla.job.entity.Job;
 import com.example.wasla.job.entity.JobStatus;
 import com.example.wasla.job.repository.JobRepository;
+import com.example.wasla.notification.service.NotificationPublisher;
 import com.example.wasla.rating.dto.CreateRatingRequest;
 import com.example.wasla.rating.dto.RatingResponseDto;
 import com.example.wasla.rating.entity.Rating;
@@ -34,6 +35,7 @@ public class RatingService {
     private final JobRepository jobRepository;
     private final DriverRepository driverRepository;
     private final RatingMapper ratingMapper;
+    private final NotificationPublisher notificationPublisher;
 
     @Transactional
     public RatingResponseDto createRating(UUID jobId, Client client, CreateRatingRequest request) {
@@ -62,6 +64,16 @@ public class RatingService {
         updateDriverRating(job.getDriver().getId());
 
         log.info("Rating {} created for job {} by client {}", saved.getId(), jobId, client.getId());
+        
+        // Publish notification to driver
+        notificationPublisher.publishReviewReceived(
+            jobId,
+            job.getDriver().getId(),
+            client.getId(),
+            request.getScore(),
+            request.getComment()
+        );
+        
         return ratingMapper.toResponseDto(saved);
     }
 
