@@ -27,7 +27,7 @@ public class LocationController {
                description = "Retrieve all GPS points for a specific job")
     public ResponseEntity<ApiResponse<RouteDto>> getJobRoute(@PathVariable UUID jobId) {
         RouteDto route = locationService.getJobRoute(jobId);
-        return ResponseEntity.ok(ApiResponse.success(route));
+        return ResponseEntity.ok(ApiResponse.ok(route));
     }
 
     @GetMapping("/jobs/{jobId}/latest")
@@ -36,6 +36,6 @@ public class LocationController {
                description = "Get the most recent location for a job")
     public ResponseEntity<ApiResponse<LocationHistory>> getLatestLocation(@PathVariable UUID jobId) {
         LocationHistory location = locationService.getLatestLocation(jobId);
-        return ResponseEntity.ok(ApiResponse.success(location));
+        return ResponseEntity.ok(ApiResponse.ok(location));
     }
 }

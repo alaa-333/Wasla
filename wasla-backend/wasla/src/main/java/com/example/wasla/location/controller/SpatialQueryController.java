@@ -49,9 +49,10 @@ public class SpatialQueryController {
         
         List<Job> jobs = spatialQueryService.findJobsWithinRadius(lat, lng, radiusKm);
         
-        return ResponseEntity.ok(ApiResponse.success(
-            jobs,
-            "Found " + jobs.size() + " jobs within " + radiusKm + " km"
+        return ResponseEntity.ok(ApiResponse.ok(
+
+            "Found " + jobs.size() + " jobs within " + radiusKm + " km",
+                jobs
         ));
     }
 
@@ -72,7 +73,7 @@ public class SpatialQueryController {
         data.put("centerLat", lat);
         data.put("centerLng", lng);
         
-        return ResponseEntity.ok(ApiResponse.success(data));
+        return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
     // ─── Driver Spatial Queries ───────────────────────────────────────────
@@ -88,9 +89,10 @@ public class SpatialQueryController {
         
         List<Driver> drivers = spatialQueryService.findAvailableDriversWithinRadius(lat, lng, radiusKm);
         
-        return ResponseEntity.ok(ApiResponse.success(
-            drivers,
-            "Found " + drivers.size() + " available drivers within " + radiusKm + " km"
+        return ResponseEntity.ok(ApiResponse.ok(
+
+            "Found " + drivers.size() + " available drivers within " + radiusKm + " km",
+                drivers
         ));
     }
 
@@ -111,37 +113,9 @@ public class SpatialQueryController {
         data.put("centerLat", lat);
         data.put("centerLng", lng);
         
-        return ResponseEntity.ok(ApiResponse.success(data));
+        return ResponseEntity.ok(ApiResponse.ok(data));
     }
 
-    // ─── Analytics Endpoints ──────────────────────────────────────────────
-
-    @GetMapping("/analytics/coverage")
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'DRIVER')")
-    @Operation(summary = "Get coverage analytics",
-               description = "Get job and driver counts for multiple radius values")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getCoverageAnalytics(
-            @RequestParam BigDecimal lat,
-            @RequestParam BigDecimal lng) {
-        
-        Map<String, Object> analytics = new HashMap<>();
-        
-        // Jobs at different radii
-        analytics.put("jobsWithin5km", spatialQueryService.countJobsWithinRadius(lat, lng, new BigDecimal("5")));
-        analytics.put("jobsWithin10km", spatialQueryService.countJobsWithinRadius(lat, lng, new BigDecimal("10")));
-        analytics.put("jobsWithin15km", spatialQueryService.countJobsWithinRadius(lat, lng, new BigDecimal("15")));
-        analytics.put("jobsWithin25km", spatialQueryService.countJobsWithinRadius(lat, lng, new BigDecimal("25")));
-        
-        // Drivers at different radii
-        analytics.put("driversWithin5km", spatialQueryService.countAvailableDriversWithinRadius(lat, lng, new BigDecimal("5")));
-        analytics.put("driversWithin10km", spatialQueryService.countAvailableDriversWithinRadius(lat, lng, new BigDecimal("10")));
-        analytics.put("driversWithin15km", spatialQueryService.countAvailableDriversWithinRadius(lat, lng, new BigDecimal("15")));
-        
-        analytics.put("centerLat", lat);
-        analytics.put("centerLng", lng);
-        
-        return ResponseEntity.ok(ApiResponse.success(analytics));
-    }
 
     // ─── Utility Endpoints ────────────────────────────────────────────────
 
@@ -172,6 +146,6 @@ public class SpatialQueryController {
         data.put("distanceKm", Math.round(distanceMeters / 1000.0 * 100.0) / 100.0);
         data.put("distanceMiles", Math.round(distanceMeters * 0.000621371 * 100.0) / 100.0);
         
-        return ResponseEntity.ok(ApiResponse.success(data));
+        return ResponseEntity.ok(ApiResponse.ok(data));
     }
 }

@@ -45,16 +45,19 @@ public class JobController {
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> cancelJobById(@PathVariable UUID id) {
-
+    @Operation(summary = "Cancel job by ID (CLIENT only)")
+    @DeleteMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<String>> cancelJobById(@PathVariable UUID id) {
         boolean isCanceled = jobService.cancelJobById(id);
-
+        
         if (isCanceled) {
-            return ResponseEntity.ok(ApiResponse.ok("job canceled successfully"));
+            return ResponseEntity.ok(ApiResponse.ok("Job canceled successfully"));
         } else {
-            return ResponseEntity.ok(ApiResponse.ok("job not canceled "));
-
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.<String>builder()
+                            .success(false)
+                            .message("Job could not be canceled")
+                            .build());
         }
     }
 
