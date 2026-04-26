@@ -37,7 +37,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/wasla
       SPRING_DATASOURCE_USERNAME: wasla
-      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_DATASOURCE_PASSWORD: wasla123
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       JWT_SECRET: moveMateDefaultSecretKeyForDevelopmentOnly2026MustBeAtLeast256Bits
