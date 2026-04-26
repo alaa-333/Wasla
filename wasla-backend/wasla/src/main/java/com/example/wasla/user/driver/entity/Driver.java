@@ -1,8 +1,10 @@
 package com.example.wasla.user.driver.entity;
 
 import com.example.wasla.common.entity.BaseEntity;
+import com.example.wasla.common.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 
@@ -17,7 +19,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Driver extends BaseEntity {
+@EntityListeners(AuditingEntityListener.class)
+public class Driver extends BaseEntity implements User {
 
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;

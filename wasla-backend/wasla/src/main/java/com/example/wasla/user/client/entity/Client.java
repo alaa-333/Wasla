@@ -1,8 +1,10 @@
 package com.example.wasla.user.client.entity;
 
 import com.example.wasla.common.entity.BaseEntity;
+import com.example.wasla.common.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Client entity — a person who posts move requests.
@@ -15,7 +17,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Client extends BaseEntity {
+@EntityListeners(AuditingEntityListener.class)
+public class Client extends BaseEntity implements User {
 
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;

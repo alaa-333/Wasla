@@ -1,6 +1,7 @@
 package com.example.wasla.job.repository;
 
 import com.example.wasla.job.entity.Bid;
+import com.example.wasla.job.entity.BidStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,6 +20,8 @@ public interface BidRepository extends JpaRepository<Bid, UUID> {
     Optional<Bid> findByJobIdAndDriverId(UUID jobId, UUID driverId);
 
     boolean existsByJobIdAndDriverId(UUID jobId, UUID driverId);
+
+    List<Bid> findByJobIdAndStatus(UUID jobId, BidStatus status);
 
     @Modifying
     @Query("UPDATE Bid b SET b.status = 'WITHDRAWN' WHERE b.job.id = :jobId AND b.id <> :acceptedBidId AND b.status = 'PENDING'")
