@@ -6,20 +6,17 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Add spatial indexes for jobs table (pickup location)
-CREATE INDEX IF NOT EXISTS idx_jobs_pickup_location ON jobs 
-USING GIST (ST_MakePoint(pickup_lng, pickup_lat)::geography);
+-- Using geometry type (SRID 4326) for better compatibility
+CREATE INDEX IF NOT EXISTS idx_jobs_pickup_location ON jobs
+USING GIST (ST_SetSRID(ST_MakePoint(pickup_lng, pickup_lat), 4326));
 
 -- Add spatial indexes for jobs table (dropoff location)
-CREATE INDEX IF NOT EXISTS idx_jobs_dropoff_location ON jobs 
-USING GIST (ST_MakePoint(dropoff_lng, dropoff_lat)::geography);
+CREATE INDEX IF NOT EXISTS idx_jobs_dropoff_location ON jobs
+USING GIST (ST_SetSRID(ST_MakePoint(dropoff_lng, dropoff_lat), 4326));
 
 -- Add spatial index for drivers current location
-CREATE INDEX IF NOT EXISTS idx_drivers_current_location ON drivers 
-USING GIST (ST_MakePoint(current_lng, current_lat)::geography);
-
--- Add composite indexes for common query patterns
-CREATE INDEX IF NOT EXISTS idx_jobs_status_pickup_location ON jobs 
-USING GIST (status, ST_MakePoint(pickup_lng, pickup_lat)::geography);
+CREATE INDEX IF NOT EXISTS idx_drivers_current_location ON drivers
+USING GIST (ST_SetSRID(ST_MakePoint(current_lng, current_lat), 4326));
 
 -- Add comments for documentation
 COMMENT ON COLUMN jobs.pickup_lat IS 'Pickup latitude coordinate (WGS84)';

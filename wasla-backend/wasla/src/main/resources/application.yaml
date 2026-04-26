@@ -8,7 +8,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/wasla}
     username: ${SPRING_DATASOURCE_USERNAME:wasla}
-    password: ${SPRING_DATASOURCE_PASSWORD:secret}
+    password: ${SPRING_DATASOURCE_PASSWORD:wasla123}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
