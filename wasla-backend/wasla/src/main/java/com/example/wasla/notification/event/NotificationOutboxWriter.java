@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -24,8 +22,7 @@ public class NotificationOutboxWriter {
 
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
-    @Transactional(propagation = Propagation.MANDATORY)
-    // MANDATORY = must run within an existing transaction (the business one)
+    // Runs within the existing transaction from the business operation
     public void onNotificationEvent(WaslaNotificationEvent event) {
         try {
             String dataJson = objectMapper.writeValueAsString(event.getData());
@@ -41,7 +38,7 @@ public class NotificationOutboxWriter {
             outbox.setBidId(event.getBidId());
             outbox.setActorUserId(event.getActorUserId());
             outbox.setPriority(event.getPriority());
-            outbox.setTtlSeconds(event.getTtlSeconds());
+            outbox.setTtlSeconds((int) event.getTtlSeconds());
             outbox.setDataOnly(event.isDataOnly());
             outbox.setStatus("PENDING");
             outbox.setRetryCount(0);

@@ -7,7 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -20,6 +22,13 @@ public class FirebaseConfig {
 
     @Bean
     public FirebaseApp initializeFirebase() throws IOException {
+        // Check if credentials file exists
+        File credentialsFile = new File(credentialsPath);
+        if (!credentialsFile.exists()) {
+            log.warn("Firebase credentials file not found at: {}. Firebase notifications will be disabled.", credentialsPath);
+            return null;
+        }
+
         if (FirebaseApp.getApps().isEmpty()) {
             FileInputStream serviceAccount = new FileInputStream(credentialsPath);
 
