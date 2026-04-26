@@ -57,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/jobs/*/rating")
                             .hasAuthority("CLIENT")
                         .requestMatchers("/api/v1/clients/**").hasAuthority("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/spatial/drivers/nearby")
+                            .hasAuthority("CLIENT")
 
                         // ── Driver only ──
                         .requestMatchers(HttpMethod.GET, "/api/v1/jobs/nearby")
@@ -65,9 +67,21 @@ public class SecurityConfig {
                             .hasAuthority("DRIVER")
                         .requestMatchers("/api/v1/drivers/me/**").hasAuthority("DRIVER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/drivers/me").hasAuthority("DRIVER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/spatial/jobs/nearby")
+                            .hasAuthority("DRIVER")
+
+                        // ── Client or Driver (Shared) ──
+                        .requestMatchers("/api/v1/locations/**").hasAnyAuthority("CLIENT", "DRIVER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/spatial/jobs/nearby/count")
+                            .hasAnyAuthority("CLIENT", "DRIVER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/spatial/drivers/nearby/count")
+                            .hasAnyAuthority("CLIENT", "DRIVER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/spatial/analytics/**")
+                            .hasAnyAuthority("CLIENT", "DRIVER")
 
                         // ── Any authenticated ──
                         .requestMatchers(HttpMethod.GET, "/api/v1/drivers/*").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/spatial/distance").permitAll()
 
                         .anyRequest().authenticated())
 
